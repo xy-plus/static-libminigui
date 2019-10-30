@@ -5,7 +5,7 @@ Contains 2 parts:
 - static compile libminigui
 - static compile minigui app
 
-I assume you work in Linux, and have x86_64-linux-musl.
+I assume you work in Alpine-Linux, and use x86_64-linux-musl as default toolchain.
 
 Or you can work in docker:
 
@@ -18,26 +18,112 @@ docker$ cd mnt
 
 ## static compile libminigui
 
-minigui is clone from https://github.com/VincentWei/minigui , to static complie it by musl, we should
+### modify files
 
-- `src/kernel.sharedres.c`
+minigui is clone from https://github.com/VincentWei/minigui , to static complie it by musl, we should make a little changes to the files.
 
-```git
+I already copy it to my repo and change some files, If you want to clone it from official GitHub repo, please change the files below by yourself.
+
+- `minigui/src/kernel/sharedres.c`
+
+```diff
 + #include <fcntl.h>
 ```
 
-- `src/misc/nposix.c`
+- `minigui/src/misc/nposix.c`
 
-```git
+```diff
 + #include <sys/time.h>
 ```
 
-- `src/newgal/fbcon/pci_smi.c`
+- `minigui/src/newgal/fbcon/pci_smi.c`
 
-```git
+```diff
 - #include <error.h>
 ```
 
+### setup environment
+
+```sh
+apk add make
+apk add autoconf
+apk add automake
+apk add pkgconf
+```
+
+### compile library
+
+```sh
+./build-libminigui.sh
+```
+
+`build-libminigui.sh` is edited for [rCore(a tiny linux like OS)](https://github.com/rcore-os/rCore) , you can run `./minigui/configure --help` to check what I did, and modify it by yourself.
+
 ## static compile minigui app
 
-asdsaasd
+```sh
+./build-minigui-app.sh
+```
+
+## run app on rCore
+
+### modify configure
+
+- `MiniGUI.cfg`
+
+```diff
+- gal_engine=pc_xvfb
+- defaultmode=800x600-16bpp
++ gal_engine=fbcon
+
+- ial_engine=pc_xvfb
++ ial_engine=console
+
+- gal_engine=pc_xvfb
+- defaultmode=800x600-16bpp
++ gal_engine=fbcon
+
+[fbcon]
+- defaultmode=1024x768-16bpp
++ defaultmode=1024x768-32bpp
+
+- respath=/usr/local/share/minigui/res/
++ respath=/usr/local/share/minigui/res
+```
+
+### place resourse
+
+- place minigui-res
+
+```sh
+git clone https://github.com/VincentWei/minigui-res.git
+cd minigui-res
+./autogen.sh
+./configure
+make -j
+make install
+cd ..
+git clone https://github.com/rcore-os/rCore.git --recursive
+cd rCore/user
+make sfsimg arch=x86_64
+cp /usr/local/share/minigui/res  ./build/x86_64/usr/local/share/minigui/
+```
+
+- place app
+
+```sh
+cp minigui-samples/HelloWorld/MiniGUI.cfg rCore/user/build/x86_64/ # MiniGUI.cfg and myapp.out should in the same dir
+cp minigui-samples/HelloWorld/HelloWorld.out rCore/user/build/x86_64/
+cp minigui-samples/minesweeper/minesweeper.out rCore/user/build/x86_64/
+cp minigui-samples/minesweeper/res rCore/user/build/x86_64/
+make sfsimg arch=x86_64
+```
+
+### run app
+
+```sh
+cd rCore/kernel
+make run arch=x86_64
+rCore$ ./HelloWorld
+rCore$ ./minesweeper
+```
