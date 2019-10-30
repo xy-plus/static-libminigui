@@ -52,7 +52,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <error.h>
 #include <string.h>
 
 /*#define _DEBUG*/
