@@ -72,16 +72,17 @@ apk add pkgconf
 - `MiniGUI.cfg`
 
 ```diff
+[system]
+# GAL engine and default options
 - gal_engine=pc_xvfb
 - defaultmode=800x600-16bpp
 + gal_engine=fbcon
 
+# IAL engine
 - ial_engine=pc_xvfb
 + ial_engine=console
-
-- gal_engine=pc_xvfb
-- defaultmode=800x600-16bpp
-+ gal_engine=fbcon
++ mdev=/dev/input/mice
++ mtype=IMPS2
 
 [fbcon]
 - defaultmode=1024x768-16bpp
@@ -93,7 +94,9 @@ apk add pkgconf
 
 ### place resourse
 
-- place minigui-res
+- get minigui-res
+
+You can run command to get it, or download it from http://www.minigui.com/downloads/4.0.0/minigui-res-4.0.0.tar.gz .
 
 ```sh
 git clone https://github.com/VincentWei/minigui-res.git
@@ -101,12 +104,17 @@ cd minigui-res
 ./autogen.sh
 ./configure
 make -j
-make install
+make install # you res is placed to /usr/local/share/minigui/res
 cd ..
+```
+
+- place minigui-res
+
+```
 git clone https://github.com/rcore-os/rCore.git --recursive
 cd rCore/user
 make sfsimg arch=x86_64
-cp /usr/local/share/minigui/res  ./build/x86_64/usr/local/share/minigui/
+cp /minigui-res_path/res  ./build/x86_64/usr/local/share/minigui/
 ```
 
 - place app
@@ -123,7 +131,7 @@ make sfsimg arch=x86_64
 
 ```sh
 cd rCore/kernel
-make run arch=x86_64
+make run arch=x86_64 graphic=on
 rCore$ ./HelloWorld
-rCore$ ./minesweeper
+rCore$ ./minesweeper # minigui-samples/minesweeper/res and minesweeper.out should in the same dir
 ```
