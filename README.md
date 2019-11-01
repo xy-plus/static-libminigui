@@ -80,9 +80,11 @@ apk add pkgconf
 
 # IAL engine
 - ial_engine=pc_xvfb
+- mdev=/dev/input/mice
+- mtype=IMPS2
 + ial_engine=console
-+ mdev=/dev/input/mice
-+ mtype=IMPS2
++ mdev=none
++ mtype=none
 
 [fbcon]
 - defaultmode=1024x768-16bpp
