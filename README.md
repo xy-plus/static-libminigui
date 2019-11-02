@@ -5,9 +5,9 @@ Contains 2 parts:
 - static compile libminigui
 - static compile minigui app
 
-I assume you work in Alpine-Linux, and use x86_64-linux-musl as default toolchain.
+I assume you work in Alpine-Linux, and use x86_64-linux-musl as default toolchain. If you want build other platform minigui-app, read the x86_64 step first, then read the cross-complie method in the bottom.
 
-Or you can work in docker:
+You can work in docker:
 
 ```shell
 yourComputer$ git clone https://github.com/xy-plus/static-libminigui.git
@@ -136,4 +136,38 @@ cd rCore/kernel
 make run arch=x86_64 graphic=on
 rCore$ ./HelloWorld
 rCore$ ./minesweeper # minigui-samples/minesweeper/res and minesweeper.out should in the same dir
+```
+
+## cross-compile
+
+### fix minigui's bug
+
+There are some bug in minigui, We report it to minigui, but till now our pull request hasn't been accept. If you use the minigui download from it officail GitHub, maybe you should make this change to better support arm and riscv:
+
+```diff
+// in minigui/include/common.h
+
+    (defined(__alpha__) || defined(__alpha)) || \
+-   defined(__arm__) || \
++   defined(__arm__) || defined(__aarch64__) || \
+    defined(__riscv_xlen) || \
+    (defined(__CC_ARM) && !defined(__BIG_ENDIAN)) || \
+    (defined(__mips__) && defined(__MIPSEL__)) || \
+    defined(__LITTLE_ENDIAN__) || \
+```
+
+### select plantform
+
+- docker
+
+```shell
+docker run -it --mount type=bind,source=$(pwd),destination=/mnt muslcc/x86_64:{x86_64, aarch64, riscv64}-linux-musl
+```
+
+- `build-libminigui.sh`
+
+```diff
+./configure \
++   --host=riscv64-linux-musl \
+    --disable-complexscripts \
 ```
